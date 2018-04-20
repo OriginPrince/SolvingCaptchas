@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>获取验证码</title>
+</head>
+<script src="/static/js/jquery-1.11.1.min.js"></script>
+<script src="/static/js/refresh_captcha.js"></script>
+<body>
+{{ data_form }}
+<script>
+    var src = $("#id_captcha_0").prev().attr("src");
+        var hashkey = $("#id_captcha_0").val();
+        src = "http://127.0.0.1:8000" + src;
+        $.ajax({
+            type: 'POST',
+            url: '{% url 'getData' %}',
+            data: {"src": src, "hashkey": hashkey},
+            async: true,
+            beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+            },
+            success: function (result) {
+                window.location.reload();
+            }
+        });
+</script>
+
+</body>
+</html>
