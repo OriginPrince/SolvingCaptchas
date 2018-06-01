@@ -22,7 +22,7 @@ class GetDataView(View):
         result = c.fetchone()
 
         r = requests.get(url, stream=True)
-        with open('./media/train/'+result[1]+'.png', 'wb') as fd:
+        with open('./media/test/'+result[1]+'.png', 'wb') as fd:
             for chunk in r.iter_content():
                 fd.write(chunk)
 

@@ -7,16 +7,14 @@ from sklearn.preprocessing import LabelBinarizer
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D, MaxPooling2D
-from keras.layers.core import Flatten, Dense
-#from helpers import resize_to_fit
+from keras.layers.core import Flatten, Dense,Dropout
+from apps.ConvertData.ResizeData import resize_to_fit
 from RecognizeCaptcha.settings import BASE_DIR
 
 
 LETTER_IMAGES_FOLDER = os.path.join(BASE_DIR, 'media', 'extract')
-MODEL_FILENAME = "captcha_model.hdf5"
-MODEL_LABELS_FILENAME = "model_labels.dat"
-
-
+MODEL_FILENAME =os.path.join(BASE_DIR, 'media', 'captcha_model.hdf5')
+MODEL_LABELS_FILENAME =os.path.join(BASE_DIR, 'media', 'model_labels.dat')
 
 data = []
 labels = []
@@ -27,10 +25,10 @@ for image_file in paths.list_images(LETTER_IMAGES_FOLDER):
     image = cv2.imread(image_file)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Resize the letter so it fits in a 20x20 pixel box
-    #image = resize_to_fit(image, 20, 20)
+    # 调整字母尺寸为20*20
+    image = resize_to_fit(image, 20, 20)
 
-    # 给图片添加第三维来使用keras
+    # 给图片添加第三维来使用keras，灰度图只有一维，彩色图有三维
     image = np.expand_dims(image, axis=2)
 
     # 获取图片文件夹的名字
@@ -45,10 +43,11 @@ for image_file in paths.list_images(LETTER_IMAGES_FOLDER):
 data = np.array(data, dtype="float") / 255.0
 labels = np.array(labels)
 
-#将训练数据分为续联数据和测试数据
-(X_train, X_test, Y_train, Y_test) = train_test_split(data, labels, test_size=0.25, random_state=0)
+#将训练数据分为训练数据和测试数据
+(X_train, X_valtest, Y_train, Y_valtest) = train_test_split(data, labels, test_size=0.3, random_state=0)
+(X_val, X_test, Y_val, Y_test) = train_test_split(X_valtest, Y_valtest, test_size=0.5, random_state=0)
 
-# 将labels转化为keras可以使用的独热码
+# 将labels转化为keras可以使用的独热码，LabelBinarizer可以将数据二值化，也就是将标签转化为独热码
 '''
 独热码是一种特殊的编码
 0:1000000000
@@ -58,6 +57,7 @@ labels = np.array(labels)
 '''
 lb = LabelBinarizer().fit(Y_train)
 Y_train = lb.transform(Y_train)
+Y_val = lb.transform(Y_val)
 Y_test = lb.transform(Y_test)
 
 # 将标签转化的独热码字典进行保存，我们在使用神经网络预测值的时候需要使用独热码
@@ -80,13 +80,17 @@ model.add(Flatten())
 model.add(Dense(500, activation="relu"))
 
 # 输出层
-model.add(Dense(32, activation="softmax"))
+model.add(Dense(26, activation="softmax"))
 
 # 让keras创建tensorflow model
 model.compile(loss="categorical_crossentropy", optimizer="adam", metrics=["accuracy"])
 
 # 训练神经网络
-model.fit(X_train, Y_train, validation_data=(X_test, Y_test), batch_size=32, epochs=10, verbose=1)
+model.fit(X_train, Y_train, validation_data=(X_val, Y_val), batch_size=30, epochs=15, verbose=1)
 
+scores=model.evaluate(X_test,Y_test)
+print("+++++++++++++++++++++++")
+print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+print("%s: %.2f%%" % (model.metrics_names[0], scores[0]*100))
 # 将训练模型保存到磁盘
 model.save(MODEL_FILENAME)

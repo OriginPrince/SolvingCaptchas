@@ -7,10 +7,10 @@ import os
 from PIL import Image
 import glob
 
-clean_image_files = os.path.join(BASE_DIR,'media','clean')
 
 # 干扰线降噪
-def interference_line(img, img_name):
+def interference_line(img, img_name,str='clean'):
+    clean_image_files = os.path.join(BASE_DIR, 'media',str)
     filename = os.path.join(clean_image_files,img_name.split('.')[0] + '-c.jpg')
     h, w = img.shape[:2]
     # ！！！opencv矩阵点是反的
@@ -52,7 +52,7 @@ def interference_line(img, img_name):
     return img,filename
 
 # 点降噪
-def interference_point(img, img_name, x=0, y=0):
+def interference_point(img, x=0, y=0):
     """
     9邻域框,以当前点为中心的田字框,黑点个数
     :param x:
@@ -169,7 +169,7 @@ if __name__=="__main__":
         gray = cv2.threshold(gray2, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
         #gray = cv2.adaptiveThreshold(gray1, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 1)
 
-        imga = interference_point(gray, filename)
+        imga = interference_point(gray)
         thresh,newname = interference_line(imga, filename)
 
         #把去噪声后的图片进行分割
