@@ -6,6 +6,7 @@ import cv2
 import os
 from PIL import Image
 import glob
+import shutil
 
 
 # 干扰线降噪
@@ -153,6 +154,16 @@ def interference_point(img, x=0, y=0):
 
 
 if __name__=="__main__":
+    clean_image_files = os.path.join(BASE_DIR, 'media', 'clean')
+    extract_image_files=os.path.join(BASE_DIR, 'media', 'extract')
+    if os.path.exists(clean_image_files):
+        shutil.rmtree(clean_image_files)
+    os.mkdir(clean_image_files)
+    if os.path.exists(extract_image_files):
+        shutil.rmtree(extract_image_files)
+    os.mkdir(extract_image_files)
+
+
     captcha_image_files = glob.glob(os.path.join(BASE_DIR,'media','train', "*"))
     counts={}
 
@@ -182,9 +193,7 @@ if __name__=="__main__":
             subList.append(subImg)
 
         for i in range(0,4):
-
-            save_path = os.path.join(os.path.join(BASE_DIR, 'media', 'extract'), captcha_correct_text[i])
-
+            save_path = os.path.join(extract_image_files, captcha_correct_text[i])
             # 路径不存在则创建
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
@@ -196,4 +205,3 @@ if __name__=="__main__":
             # 每个文件夹增加1
             counts[captcha_correct_text[i]] = count + 1
             subList[i].save(p)
-

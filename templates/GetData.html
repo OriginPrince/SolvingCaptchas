@@ -8,22 +8,20 @@
 <script src="/static/js/refresh_captcha.js"></script>
 <body>
 {{ data_form }}
+<input id="flag" type="hidden" value="0">
+<button id="btn">停止</button>
+<button id="start">开始</button>
+<script src="/static/js/postData.js"></script>
 <script>
-    var src = $("#id_captcha_0").prev().attr("src");
-        var hashkey = $("#id_captcha_0").val();
-        src = "http://127.0.0.1:8000" + src;
-        $.ajax({
-            type: 'POST',
-            url: '{% url 'getData' %}',
-            data: {"src": src, "hashkey": hashkey},
-            async: true,
-            beforeSend: function (xhr, settings) {
-                xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
-            },
-            success: function (result) {
-                window.location.reload();
-            }
+    $(function($){
+        $("#btn").click(function(){
+            $("#flag").val("1");
         });
+        $("#start").click(function(){
+            $("#flag").val("0");
+            postData('{% url 'getData' %}',"{{ csrf_token }}");
+        });
+    })
 </script>
 
 </body>

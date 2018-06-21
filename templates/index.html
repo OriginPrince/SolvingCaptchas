@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>基于深度学习的验证码识别系统</title>
+    <link href="/static/css/bootstrap.css" rel="stylesheet" type="text/css" media="all">
+    <link href="/static/css/style.css" rel="stylesheet" type="text/css" media="all"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <script type="application/x-javascript"> addEventListener("load", function () {
+        setTimeout(hideURLbar, 0);
+    }, false);
+    function hideURLbar() {
+        window.scrollTo(0, 1);
+    } </script>
+    <script src="/static/js/jquery-1.11.1.min.js"></script>
+<script src="/static/js/refresh_captcha.js"></script>
+</head>
+<body>
+<div class="banner">
+    <div class="banner-top">
+        <div class="banner-info">
+            <div class="logo">
+                <h2>基于深度学习的验证码识别系统</h2>
+            </div>
+            <h3>应用模型识别验证码界面</h3>
+        </div>
+    </div>
+</div>
+<!-- steps -->
+<div class="steps">
+    <div class="container">
+        <div class="steps-1">
+            <div class="boo-lef">
+                <img src="/static/images/sear.png" class="img-responsive" alt="">
+            </div>
+            <h5>生成训练数据</h5>
+        </div>
+        <div class="steps-2">
+            <div class="boo-lef">
+                <img src="/static/images/msg.png" class="img-responsive" alt="">
+
+            </div>
+            <h5>处理训练数据</h5>
+        </div>
+        <div class="steps-3">
+            <div class="boo-lef">
+                <img src="/static/images/bk.png" class="img-responsive" alt="">
+            </div>
+            <h5>训练模型</h5>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</div>
+<!-- steps -->
+<!-- skills -->
+<div class="skills">
+    <div class="container">
+        <div class="col-md-4">
+            <div>
+                <h3>生成测试数据</h3>
+                <p>图片保存在项目根目录下的TestFile文件夹中</p>
+            </div>
+            <div>
+                {{ data_form }}
+            </div>
+            <input id="flag" type="hidden" value="0">
+            <a class="read" id="stop">停止</a>
+            <a class="read" id="start">开始</a>
+        </div>
+        <div class="col-md-4">
+            <h3>选择验证码图片</h3>
+            <div>
+                <a href="javascript:;" class="file">选择文件
+                    <input type="file" name="" id="pic" accept="image/*">
+                </a>
+                <img id="img">
+            </div>
+            <br>
+            <div>
+                <a class="read" id="read">识别</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h3>验证码识别结果</h3>
+            <h2 id="result"></h2>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+</div>
+<!-- skills -->
+<script src="/static/js/postData.js"></script>
+<script>
+
+    $(function ($) {
+        $('label').css({'display':'none'});
+        $('#id_captcha_1').css({'display':'none'});
+         $("#stop").click(function(){
+            $("#flag").val("1");
+        });
+        $("#start").click(function(){
+            $("#flag").val("0");
+            postData('{% url 'getTestData' %}',"{{ csrf_token }}");
+        });
+        $("#pic").change(function (evt) {
+            var files = evt.target.files;
+            for (var i = 0, f; f = files[i]; i++) {
+                if (!f.type.match('image.*')) {
+                    continue;
+                }
+                var reader = new FileReader();
+                reader.onload = (function (theFile) {
+                    return function (e) {
+                        $('#img').attr('src', e.target.result);
+                    }
+                })(f);
+                reader.readAsDataURL(f);
+            }
+        });
+        $('#read').click(function () {
+            var pic = $("#pic")[0].files[0];
+            var form = new FormData();
+            form.append('picture', pic);
+            $.ajax({
+                type: 'post',
+                url: '/recognize/',
+                data: form,
+                processData: false,  // 告诉jquery不转换数据
+                contentType: false,  // 告诉jquery不设置内容格式
+                async: true,
+                beforeSend: function (xhr, settings) {
+                    xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+                },
+                success: function (result) {
+                    if (result.status == "true") {
+                        alert("识别成功");
+                        $("#result").text(result.msg);
+                    }
+                    else {
+                        alert("失败");
+                    }
+                }
+            });
+        })
+    })
+</script>
+
+</body>
+</html>

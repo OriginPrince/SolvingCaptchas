@@ -17,13 +17,17 @@ from django.conf.urls import url,include
 from django.contrib import admin
 from django.views.static import serve
 
-from apps.ProduceData.views import GetDataView
-from RecognizeCaptcha.settings import STATICFILES_DIRS,MEDIA_ROOT
+from apps.ProduceData.views import GetDataView,GetTestDataView
+from apps.Home.views import HomeView,RecognizeView
+from RecognizeCaptcha.settings import STATICFILES_DIRS,MEDIA_DIRS
 
 urlpatterns = [
-    url(r'^getData/$',GetDataView.as_view(),name="getData"),
+    url(r'^getTestData/$', GetTestDataView.as_view(), name="getTestData"),
+    url(r'^getData/$', GetDataView.as_view(), name="getData"),
+    url(r'^home/$',HomeView.as_view(),name="home"),
+    url(r'^recognize/$', RecognizeView.as_view(), name="recognize"),
     url(r'^static/(?P<path>.*)$',serve,{"document_root":STATICFILES_DIRS}),
-    url(r'^media/(?P<path>.*)$', serve, {"document_root": MEDIA_ROOT}),
+    url(r'^media/(?P<path>.*)$', serve, {"document_root": MEDIA_DIRS}),
     url(r'^captcha/', include('captcha.urls')),
     url(r'^admin/', admin.site.urls),
 ]
